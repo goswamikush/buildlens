@@ -1,0 +1,21 @@
+# Compiled binaries
+/buildlens
+/bin/
+/dist/
+
+# Go test and coverage output
+*.test
+*.out
+coverage.*
+
+# Go workspace (local editor setup, not part of the project)
+go.work
+go.work.sum
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Local env/secrets
+.env
