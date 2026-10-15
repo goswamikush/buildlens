@@ -1,0 +1,5 @@
+{"vertexes":[{"digest":"sha256:x1","name":"[build 1/2] RUN go mod download"},{"digest":"sha256:x2","inputs":["sha256:x1"],"name":"[build 2/2] RUN go build -o /app ."}]}
+{"vertexes":[{"digest":"sha256:x1","name":"[build 1/2] RUN go mod download","started":"2026-10-14T03:11:01.000Z","completed":"2026-10-14T03:11:01.000Z","cached":true}]}
+{"vertexes":[{"digest":"sha256:x2","inputs":["sha256:x1"],"name":"[build 2/2] RUN go build -o /app .","started":"2026-10-14T03:11:01.100Z"}]}
+{"vertexes":[{"digest":"sha256:x2","inputs":["sha256:x1"],"name":"[build 2/2] RUN go build -o /app .","started":"2026-10-14T03:11:01.100Z","completed":"2026-10-14T03:11:03.100Z"}]}
+not json
