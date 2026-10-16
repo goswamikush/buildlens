@@ -35,23 +35,7 @@ func Parse(r io.Reader) error {
 			currNode, ok := digestMap[node.Digest] 
 
 			if ok {
-				if node.Detail != "" {
-					currNode.Detail = node.Detail
-				}
-
-				if node.Started != "" {
-					currNode.Started = node.Started
-				}
-
-				if node.Completed != "" {
-					currNode.Completed = node.Completed
-				}
-
-				if node.Cached {
-					currNode.Cached = node.Cached
-				}
-
-				digestMap[node.Digest] = node
+				node = mergeNodes(node, currNode)
 			} 
 			digestMap[node.Digest] = node
 		}
@@ -69,6 +53,26 @@ func Parse(r io.Reader) error {
 	fmt.Println(digestMap)
 
 	return scanner.Err()
+}
+
+func mergeNodes(newNode node, oldNode node) node {
+	if newNode.Detail != "" {
+		oldNode.Detail = newNode.Detail
+	}
+
+	if newNode.Started != "" {
+		oldNode.Started = newNode.Started
+	}
+
+	if newNode.Completed != "" {
+		oldNode.Completed = newNode.Completed
+	}
+
+	if newNode.Cached {
+		oldNode.Cached = newNode.Cached
+	}
+
+	return oldNode
 }
 
 
