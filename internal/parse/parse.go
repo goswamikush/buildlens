@@ -3,7 +3,9 @@ package parse
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
+	"time"
 )
 
 type Node struct {
@@ -13,6 +15,8 @@ type Node struct {
 	Completed string `json:"completed"`
 	Cached bool `json:"cached"`
 	Inputs []string `json:"inputs"`
+	Status string
+	Duration time.Duration
 }
 
 type vertex struct {
@@ -37,12 +41,43 @@ func Parse(r io.Reader) (map[string]Node, error) {
 
 			if ok {
 				node = mergeNodes(node, currNode)
-			} 
+			}
+
 			digestMap[node.Digest] = node
 		}
 	}
 
+	digestMap = finalize(digestMap)
+
 	return digestMap, scanner.Err()
+}
+
+func finalize(digestMap map[string]Node) (map[string]Node){
+	for digest, node := range digestMap {
+		start, err := time.Parse(time.RFC3339Nano, node.Started)
+
+		if err != nil {
+			fmt.Println("Failed to parse timestamp: ", err)
+		}
+
+		end, err := time.Parse(time.RFC3339Nano, node.Completed)
+
+		if err != nil {
+			fmt.Println("Failed to parse timestamp: ", err)
+		}
+
+		duration := end.Sub(start)
+
+		fmt.Println(duration)
+
+		node.Duration = duration
+
+		digestMap[digest] = node
+	}
+
+	print(digestMap)
+
+	return digestMap
 }
 
 func mergeNodes(newNode Node, oldNode Node) Node {
