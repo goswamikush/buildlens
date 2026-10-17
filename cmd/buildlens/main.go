@@ -17,7 +17,12 @@ func main() {
 
 	defer f.Close()
 
-	if err := parse.Parse(f); err != nil {
-		fmt.Println("parse error:", err)
+	parsedMap, err := parse.Parse(f)
+
+	if err != nil {
+		fmt.Println("Parse error: ", err)
+		return
 	}
+
+	fmt.Println("Parsed map: ", parsedMap)
 }
