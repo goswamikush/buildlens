@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-
 	"github.com/goswamikush/buildlens/internal/parse"
 )
 
@@ -17,12 +16,18 @@ func main() {
 
 	defer f.Close()
 
-	parsedMap, err := parse.Parse(f)
+	parsedMap, order, err := parse.Parse(f)
 
 	if err != nil {
 		fmt.Println("Parse error: ", err)
 		return
 	}
 
-	fmt.Println("Parsed map: ", parsedMap)
+	// for _, node := range parsedMap {
+	// 	fmt.Println(node.Detail, node.Status, node.Duration)
+	// }
+
+	for _, digest := range order {
+		fmt.Println(parsedMap[digest])
+	}
 }

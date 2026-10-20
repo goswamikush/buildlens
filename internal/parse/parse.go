@@ -3,81 +3,103 @@ package parse
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
 	"time"
 )
 
 type Node struct {
-	Detail string `json:"name"`
-	Digest string `json:"digest"`
-	Started string `json:"started"` 
-	Completed string `json:"completed"`
-	Cached bool `json:"cached"`
-	Inputs []string `json:"inputs"`
-	Status string
-	Duration time.Duration
+	Detail    string   `json:"name"`
+	Digest    string   `json:"digest"`
+	Started   string   `json:"started"`
+	Completed string   `json:"completed"`
+	Cached    bool     `json:"cached"`
+	Inputs    []string `json:"inputs"`
+	Status    string
+	Duration  time.Duration
 }
 
 type vertex struct {
 	Nodes []Node `json:"vertexes"`
 }
 
-func Parse(r io.Reader) (map[string]Node, error) {
+func Parse(r io.Reader) (map[string]Node, []string, error) {
 	scanner := bufio.NewScanner(r)
+	scanner.Buffer(make([]byte, 0, 64*1024), 10*1024*1024)
 
 	digestMap := map[string]Node{}
+	order := []string{}
 
 	for scanner.Scan() {
-		var v vertex;
-		err := json.Unmarshal(scanner.Bytes(), &v);
+		var v vertex
+		err := json.Unmarshal(scanner.Bytes(), &v)
 
 		if err != nil {
 			continue
 		}
 
 		for _, node := range v.Nodes {
-			currNode, ok := digestMap[node.Digest] 
+			currNode, ok := digestMap[node.Digest]
 
 			if ok {
 				node = mergeNodes(node, currNode)
+			} else {
+				order = append(order, node.Digest)
 			}
 
 			digestMap[node.Digest] = node
 		}
 	}
 
-	digestMap = finalize(digestMap)
+	if scanner.Err() != nil {
+		return nil, nil, scanner.Err() 
+	}
 
-	return digestMap, scanner.Err()
+	digestMap, err := finalize(digestMap)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return digestMap, order, nil
 }
 
-func finalize(digestMap map[string]Node) (map[string]Node){
+func finalize(digestMap map[string]Node) (map[string]Node, error) {
 	for digest, node := range digestMap {
+		node.Status = "incomplete"
+
+		if node.Completed != "" {
+			node.Status = "executed"
+		}
+
+		if node.Cached {
+			node.Status = "cached"
+		}
+
+		if node.Started == "" || node.Completed == "" {
+			digestMap[digest] = node
+			continue
+		}
+
 		start, err := time.Parse(time.RFC3339Nano, node.Started)
 
 		if err != nil {
-			fmt.Println("Failed to parse timestamp: ", err)
+			return nil, err
 		}
 
 		end, err := time.Parse(time.RFC3339Nano, node.Completed)
 
 		if err != nil {
-			fmt.Println("Failed to parse timestamp: ", err)
+			return nil, err
 		}
 
 		duration := end.Sub(start)
-
-		fmt.Println(duration)
 
 		node.Duration = duration
 
 		digestMap[digest] = node
 	}
 
-	print(digestMap)
-
-	return digestMap
+	return digestMap, nil
 }
 
 func mergeNodes(newNode Node, oldNode Node) Node {
@@ -103,5 +125,3 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 
 	return oldNode
 }
-
-
