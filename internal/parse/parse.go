@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+	"regexp"
 )
 
 type Node struct {
@@ -21,6 +22,8 @@ type Node struct {
 type vertex struct {
 	Nodes []Node `json:"vertexes"`
 }
+
+var buildRegex = regexp.MustCompile(`^\[(?:([^\s\]]+)\s)?(\d+)\/(\d+)\]\s+((\S+).*)$`)
 
 func Parse(r io.Reader) (map[string]Node, []string, error) {
 	scanner := bufio.NewScanner(r)
@@ -65,6 +68,8 @@ func Parse(r io.Reader) (map[string]Node, []string, error) {
 
 func finalize(digestMap map[string]Node) (map[string]Node, error) {
 	for digest, node := range digestMap {
+		parseDetails(node.Detail)
+
 		node.Status = "incomplete"
 
 		if node.Completed != "" {
@@ -124,4 +129,8 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 	}
 
 	return oldNode
+}
+
+func parseDetails(input string) ([]string, bool) {
+	return buildRegex.FindStringSubmatch(input), true
 }

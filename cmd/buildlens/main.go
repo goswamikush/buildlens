@@ -23,11 +23,9 @@ func main() {
 		return
 	}
 
-	// for _, node := range parsedMap {
-	// 	fmt.Println(node.Detail, node.Status, node.Duration)
-	// }
-
 	for _, digest := range order {
-		fmt.Println(parsedMap[digest])
+		// fmt.Println(parsedMap[digest])
+
+		fmt.Println(parse.ParseDetails(parsedMap[digest].Detail))
 	}
 }
