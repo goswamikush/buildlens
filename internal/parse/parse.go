@@ -18,6 +18,7 @@ type Node struct {
 	Status    string
 	Duration  time.Duration
 	ExtraDetails Details
+	Internal bool
 }
 
 type Details struct {
@@ -77,8 +78,9 @@ func Parse(r io.Reader) (map[string]Node, []string, error) {
 
 func finalize(digestMap map[string]Node) (map[string]Node, error) {
 	for digest, node := range digestMap {
-		newDetails, _ := parseDetails(node.Detail)
+		newDetails, matched := parseDetails(node.Detail)
 		node.ExtraDetails = newDetails
+		node.Internal = !matched
 
 		node.Status = "incomplete"
 
