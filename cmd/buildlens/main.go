@@ -36,7 +36,7 @@ func main() {
 		nodes = append(nodes, newNode)
 	}
 
-	slices.SortFunc(nodes, func(a, b parse.Node) int {
+	slices.SortStableFunc(nodes, func(a, b parse.Node) int {
 		return a.Started.Compare(b.Started)
 	})
 
