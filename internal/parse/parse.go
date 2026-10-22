@@ -33,7 +33,7 @@ type vertex struct {
 	Nodes []Node `json:"vertexes"`
 }
 
-var buildRegex = regexp.MustCompile(`^\[(?:([^\s\]]+)\s)?(\d+)\/(\d+)\]\s+((\S+).*)$`)
+var buildRegex = regexp.MustCompile(`^\[(?:(?P<stage>[^\s\]]+)\s)?(?P<step>\d+)/(?P<total>\d+)\]\s+(?P<instruction>(?P<keyword>\S+).*)$`)
 
 func Parse(r io.Reader) (map[string]Node, []string, error) {
 	scanner := bufio.NewScanner(r)
@@ -144,19 +144,17 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 }
 
 func parseDetails(input string) (Details, bool) {
-	res :=  buildRegex.FindStringSubmatch(input)
+	match :=  buildRegex.FindStringSubmatch(input)
 
-	if res == nil || len(res) != 6 {
+	if len(match) != buildRegex.NumSubexp() + 1 {
 		return Details{}, false
 	}
 
-	var newDetails Details
-
-	newDetails.Stage = res[1]
-	newDetails.Step = res[2]
-	newDetails.Total = res[3]
-	newDetails.Instruction = res[4]
-	newDetails.Keyword = res[5]
-
-	return newDetails, true
+	return Details{
+		Stage: match[buildRegex.SubexpIndex("stage")],
+		Step: match[buildRegex.SubexpIndex("step")],
+		Total: match[buildRegex.SubexpIndex("total")],
+		Instruction: match[buildRegex.SubexpIndex("instruction")],
+		Keyword: match[buildRegex.SubexpIndex("keyword")],
+	}, true
 }
