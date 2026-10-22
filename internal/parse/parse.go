@@ -12,8 +12,8 @@ import (
 type Node struct {
 	Detail       string   `json:"name"`
 	Digest       string   `json:"digest"`
-	Started      string   `json:"started"`
-	Completed    string   `json:"completed"`
+	Started      time.Time   `json:"started"`
+	Completed    time.Time   `json:"completed"`
 	Cached       bool     `json:"cached"`
 	Inputs       []string `json:"inputs"`
 	Status       string
@@ -85,7 +85,7 @@ func finalize(digestMap map[string]Node) (map[string]Node, error) {
 
 		node.Status = "incomplete"
 
-		if node.Completed != "" {
+		if !node.Completed.IsZero() {
 			node.Status = "executed"
 		}
 
@@ -97,24 +97,12 @@ func finalize(digestMap map[string]Node) (map[string]Node, error) {
 			node.Status = "base"
 		}
 
-		if node.Started == "" || node.Completed == "" {
+		if node.Started.IsZero() || node.Completed.IsZero() {
 			digestMap[digest] = node
 			continue
 		}
 
-		start, err := time.Parse(time.RFC3339Nano, node.Started)
-
-		if err != nil {
-			return nil, err
-		}
-
-		end, err := time.Parse(time.RFC3339Nano, node.Completed)
-
-		if err != nil {
-			return nil, err
-		}
-
-		duration := end.Sub(start)
+		duration := node.Completed.Sub(node.Started)
 
 		node.Duration = duration
 
@@ -129,11 +117,11 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 		oldNode.Detail = newNode.Detail
 	}
 
-	if newNode.Started != "" {
+	if !newNode.Started.IsZero() {
 		oldNode.Started = newNode.Started
 	}
 
-	if newNode.Completed != "" {
+	if !newNode.Completed.IsZero() {
 		oldNode.Completed = newNode.Completed
 	}
 
