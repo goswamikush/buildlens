@@ -144,27 +144,17 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 func parseDetails(input string) (Details, bool) {
 	res :=  buildRegex.FindStringSubmatch(input)
 
+	if res == nil || len(res) != 6 {
+		return Details{}, false
+	}
+
 	var newDetails Details
 
-	if len(res) >= 2 && res[1] != "" {
-		newDetails.Stage = res[1]
-	}
-
-	if len(res) >= 3 && res[2] != "" {
-		newDetails.Step = res[2]
-	}
-
-	if len(res) >= 4 && res[3] != "" {
-		newDetails.Total = res[3]
-	}
-
-	if len(res) >= 5 && res[4] != "" {
-		newDetails.Instruction = res[4]
-	}
-
-	if len(res) >= 6 && res[5] != "" {
-		newDetails.Keyword = res[5]
-	}
+	newDetails.Stage = res[1]
+	newDetails.Step = res[2]
+	newDetails.Total = res[3]
+	newDetails.Instruction = res[4]
+	newDetails.Keyword = res[5]
 
 	return newDetails, true
 }
