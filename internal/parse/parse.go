@@ -5,27 +5,28 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+	"strings"
 	"time"
 )
 
 type Node struct {
-	Detail    string   `json:"name"`
-	Digest    string   `json:"digest"`
-	Started   string   `json:"started"`
-	Completed string   `json:"completed"`
-	Cached    bool     `json:"cached"`
-	Inputs    []string `json:"inputs"`
-	Status    string
-	Duration  time.Duration
+	Detail       string   `json:"name"`
+	Digest       string   `json:"digest"`
+	Started      string   `json:"started"`
+	Completed    string   `json:"completed"`
+	Cached       bool     `json:"cached"`
+	Inputs       []string `json:"inputs"`
+	Status       string
+	Duration     time.Duration
 	ExtraDetails Details
-	Internal bool
+	Internal     bool
 }
 
 type Details struct {
-	Step string
-	Total string
-	Stage string
-	Keyword string
+	Step        string
+	Total       string
+	Stage       string
+	Keyword     string
 	Instruction string
 }
 
@@ -64,7 +65,7 @@ func Parse(r io.Reader) (map[string]Node, []string, error) {
 	}
 
 	if scanner.Err() != nil {
-		return nil, nil, scanner.Err() 
+		return nil, nil, scanner.Err()
 	}
 
 	digestMap, err := finalize(digestMap)
@@ -90,6 +91,10 @@ func finalize(digestMap map[string]Node) (map[string]Node, error) {
 
 		if node.Cached {
 			node.Status = "cached"
+		}
+
+		if strings.ToLower(node.ExtraDetails.Keyword) == "from" {
+			node.Status = "base"
 		}
 
 		if node.Started == "" || node.Completed == "" {
@@ -144,17 +149,17 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 }
 
 func parseDetails(input string) (Details, bool) {
-	match :=  buildRegex.FindStringSubmatch(input)
+	match := buildRegex.FindStringSubmatch(input)
 
-	if len(match) != buildRegex.NumSubexp() + 1 {
+	if len(match) != buildRegex.NumSubexp()+1 {
 		return Details{}, false
 	}
 
 	return Details{
-		Stage: match[buildRegex.SubexpIndex("stage")],
-		Step: match[buildRegex.SubexpIndex("step")],
-		Total: match[buildRegex.SubexpIndex("total")],
+		Stage:       match[buildRegex.SubexpIndex("stage")],
+		Step:        match[buildRegex.SubexpIndex("step")],
+		Total:       match[buildRegex.SubexpIndex("total")],
 		Instruction: match[buildRegex.SubexpIndex("instruction")],
-		Keyword: match[buildRegex.SubexpIndex("keyword")],
+		Keyword:     match[buildRegex.SubexpIndex("keyword")],
 	}, true
 }
