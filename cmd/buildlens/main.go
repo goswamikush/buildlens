@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
+
 	"github.com/goswamikush/buildlens/internal/parse"
 )
 
@@ -23,7 +25,24 @@ func main() {
 		return
 	}
 
+	var nodes []parse.Node
 	for _, digest := range order {
-		fmt.Println(parsedMap[digest])
+		newNode := parsedMap[digest]
+
+		if newNode.Internal {
+			continue
+		}
+
+		nodes = append(nodes, newNode)
+	}
+
+	slices.SortFunc(nodes, func(a, b parse.Node) int {
+		return a.Started.Compare(b.Started)
+	})
+
+	for _, node := range nodes {
+		d := node.ExtraDetails
+
+		fmt.Println(d.Stage, d.Step + "/" + d.Total, d.Instruction, node.Status, node.Duration)
 	}
 }
