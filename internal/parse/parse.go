@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"io"
-	"time"
 	"regexp"
+	"time"
 )
 
 type Node struct {
@@ -17,6 +17,15 @@ type Node struct {
 	Inputs    []string `json:"inputs"`
 	Status    string
 	Duration  time.Duration
+	ExtraDetails Details
+}
+
+type Details struct {
+	Step string
+	Total string
+	Stage string
+	Keyword string
+	Instruction string
 }
 
 type vertex struct {
@@ -68,7 +77,8 @@ func Parse(r io.Reader) (map[string]Node, []string, error) {
 
 func finalize(digestMap map[string]Node) (map[string]Node, error) {
 	for digest, node := range digestMap {
-		parseDetails(node.Detail)
+		newDetails, _ := parseDetails(node.Detail)
+		node.ExtraDetails = newDetails
 
 		node.Status = "incomplete"
 
@@ -131,6 +141,30 @@ func mergeNodes(newNode Node, oldNode Node) Node {
 	return oldNode
 }
 
-func parseDetails(input string) ([]string, bool) {
-	return buildRegex.FindStringSubmatch(input), true
+func parseDetails(input string) (Details, bool) {
+	res :=  buildRegex.FindStringSubmatch(input)
+
+	var newDetails Details
+
+	if len(res) >= 2 && res[1] != "" {
+		newDetails.Stage = res[1]
+	}
+
+	if len(res) >= 3 && res[2] != "" {
+		newDetails.Step = res[2]
+	}
+
+	if len(res) >= 4 && res[3] != "" {
+		newDetails.Total = res[3]
+	}
+
+	if len(res) >= 5 && res[4] != "" {
+		newDetails.Instruction = res[4]
+	}
+
+	if len(res) >= 6 && res[5] != "" {
+		newDetails.Keyword = res[5]
+	}
+
+	return newDetails, true
 }

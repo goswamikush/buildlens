@@ -24,8 +24,6 @@ func main() {
 	}
 
 	for _, digest := range order {
-		// fmt.Println(parsedMap[digest])
-
-		fmt.Println(parse.ParseDetails(parsedMap[digest].Detail))
+		fmt.Println(parsedMap[digest])
 	}
 }
